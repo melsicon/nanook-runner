@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const fetchRegisterAPI = require("../utils/fetchRegisterAPI");
+const { fetchRegisterAPI } = require("../utils/fetchRegisterAPI");
 
 class Runner {
   constructor(tdgdir) {
@@ -20,6 +20,9 @@ class Runner {
           .then((response) => response.json())
           .then((data) => {
             console.log(testcase, data.message);
+          })
+          .catch((err) => {
+            console.log(err);
           });
       }
     });
