@@ -1,29 +1,31 @@
 const fs = require("fs");
 const path = require("path");
-const { fetchRegisterAPI } = require("../utils/fetchRegisterAPI");
 
 class Runner {
-  constructor(tdgdir) {
+  constructor(tdgdir, services) {
     this.tdgdir = tdgdir;
     this.testcases = fs.readdirSync(tdgdir);
+    this.services = services;
   }
 
   run() {
     this.testcases.forEach(async (testcase) => {
-      const personPath = path.join(this.tdgdir, testcase, "runnerData.json");
+      const testcasePath = path.join(this.tdgdir, testcase, "runnerData.json");
 
-      if (fs.existsSync(personPath)) {
-        const PersonData = fs.readFileSync(personPath);
-        const person = JSON.parse(PersonData);
+      if (fs.existsSync(testcasePath)) {
+        let data = fs.readFileSync(testcasePath);
+        data = JSON.parse(data);
 
-        await fetchRegisterAPI(person)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(testcase, data.message);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        this.services.forEach(async (service) => {
+          await service(data)
+            .then((response) => response.json())
+            .then((d) => {
+              console.log(testcase, d.message);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        });
       }
     });
   }
