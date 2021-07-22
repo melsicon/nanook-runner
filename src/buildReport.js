@@ -1,4 +1,4 @@
-const buildReport = (data) => {
+const buildReport = ({ countSuccess, countFailed, data }) => {
   let header = "<title>Testcase Report</title>";
   let body = "<ul>";
 
