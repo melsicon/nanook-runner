@@ -4,7 +4,7 @@
   "description": "Runner for Nanook test data",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -22,8 +22,11 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
+    "axios": "^0.21.1",
     "eslint": "^7.31.0",
     "eslint-plugin-jest": "^24.4.0",
-    "jest": "^27.0.6"
+    "http": "^0.0.1-security",
+    "jest": "^27.0.6",
+    "mock-fs": "^5.0.0"
   }
 }

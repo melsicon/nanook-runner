@@ -1,4 +1,4 @@
-const { Runner } = require("./runner");
+const { Runner } = require("../src/runner");
 
 describe("validate() returns correct boolean", () => {
   const responses = [

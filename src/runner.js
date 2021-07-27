@@ -16,7 +16,7 @@ class Runner {
 
   async run() {
     this.createData();
-    this.runValidation()
+    await this.runValidation()
       .then((data) => {
         if (this.options.logger) console.log(data);
         if (this.callStorage != null) {
