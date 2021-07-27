@@ -16,12 +16,16 @@ class Runner {
 
   async run() {
     this.createData();
-    this.runService()
+    this.runValidation()
       .then((data) => {
-        const validatedData = this.runValidation(data);
-        if (this.options.logger) console.log(validatedData);
+        if (this.options.logger) console.log(data);
+        if (this.callStorage != null) {
+          for (const testcase of data) {
+            this.callStorage(testcase);
+          }
+        }
         if (this.options.report) {
-          const reportData = this.generateReportData(validatedData);
+          const reportData = this.generateReportData(data);
           this.generateReport(reportData);
         }
       })
@@ -43,21 +47,23 @@ class Runner {
     });
   }
 
-  runService() {
+  runValidation() {
     return new Promise(async (resolve, reject) => {
       const testcaseDataWithRes = [];
 
       for (const testcase of this.testcaseData) {
-        await this.service(testcase.data)
+        // exclude _response when sending to service
+        const { _expectedResponse, ...tData } = testcase.data;
+        await this.service(tData)
           .then((response) => response.json())
           .then((data) => {
             testcase.response = data;
 
-            testcaseDataWithRes.push(testcase);
+            const success = this.validate(_expectedResponse, data);
 
-            if (this.callStorage != null) {
-              this.callStorage(testcase);
-            }
+            testcase.success = success;
+
+            testcaseDataWithRes.push(testcase);
           })
           .catch((err) => {
             reject(err);
@@ -67,14 +73,12 @@ class Runner {
     });
   }
 
-  runValidation(data) {
-    return data.map((d) => {
-      const expectedResponse = JSON.parse(d.data._response);
-      const actualResponse = JSON.parse(JSON.stringify(d.response));
-      const isSuccess = _.isEqual(expectedResponse, actualResponse);
+  validate(expectedResponse, actualResponse) {
+    expectedResponse = JSON.parse(expectedResponse);
+    actualResponse = JSON.parse(JSON.stringify(actualResponse));
+    const isSuccess = _.isEqual(expectedResponse, actualResponse);
 
-      return { ...d, success: isSuccess };
-    });
+    return isSuccess;
   }
 
   generateReportData(data) {
@@ -93,7 +97,7 @@ class Runner {
     let dirpath = "./report.html";
     let stream = fs.createWriteStream(dirpath);
 
-    stream.once("open", function (fd) {
+    stream.once("open", function () {
       let html = buildReport(data);
 
       stream.end(html);

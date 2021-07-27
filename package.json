@@ -4,7 +4,7 @@
   "description": "Runner for Nanook test data",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,9 @@
     "lodash": "^4.17.21",
     "path": "^0.12.7"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "eslint": "^7.31.0",
+    "eslint-plugin-jest": "^24.4.0",
+    "jest": "^27.0.6"
+  }
 }
