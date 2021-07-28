@@ -26,8 +26,7 @@ class Runner {
           }
         }
         if (this.options.report) {
-          const reportData = this.generateReportData(data);
-          this.generateReport(reportData);
+          this.generateReport(data);
         }
       })
       .catch((err) => console.log(err.message));
@@ -97,9 +96,10 @@ class Runner {
   generateReport(data) {
     let dirpath = "./report.html";
     let stream = fs.createWriteStream(dirpath);
+    const reportData = this.generateReportData(data);
 
     stream.once("open", function () {
-      let html = buildReport(data);
+      let html = buildReport(reportData);
 
       stream.end(html);
     });
