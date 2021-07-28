@@ -1,0 +1,8 @@
+# Validation for Nanook test data
+
+## Structure
+The `Runner` class contains the fellowing methods:
+
+`createData()` reads the directory that was added to the constructor. It parses the `runnerData.json` files and saves the testcase data.
+
+`runValidation()` loops through every testcase and sends the data to the service. It appends the response to the testcase object and runs the `validate()` method to check if the received response is the expected response. The result of the `validate()` method is added to the testcase object. The `runValidation()` returns a Promise with an aaray of all testcase objects.

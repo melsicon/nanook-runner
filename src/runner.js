@@ -1,3 +1,4 @@
+/* eslint-disable no-async-promise-executor */
 const _ = require("lodash");
 const fs = require("fs");
 const path = require("path");

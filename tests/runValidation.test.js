@@ -7,7 +7,7 @@ const testcaseData = [
     data: {
       password: "password",
       confirmPassword: "password",
-      _expectedResponse: '{ "message": "User successfully registered." }',
+      _expectedResponse: '{ "message": "test" }',
       email: "Hussein.Morhelfer@yahoo.com",
       firstName: "Hussein",
       lastName: "Morhelfer",
@@ -18,7 +18,7 @@ const testcaseData = [
     data: {
       password: "password",
       confirmPassword: "password",
-      _expectedResponse: '{ "message": "\\"email\\" is required" }',
+      _expectedResponse: '{ "message": "test" }',
       firstName: "Hugo",
       lastName: "Meloni",
     },
@@ -36,9 +36,9 @@ test("actual response is expected response", () => {
     .runValidation()
     .then((data) => {
       validatedData = data;
-      console.log(data);
+      // Assert
+      expect(validatedData[0].response).toEqual({ message: "test" });
+      expect(validatedData[0].success).toEqual(true);
     })
     .catch((err) => console.log(err));
-  // Assert
-  expect(validatedData).toEqual(validatedData);
 });

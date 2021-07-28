@@ -1,8 +1,8 @@
-function request(data) {
+function request() {
   const response = Promise.resolve({
     ok: true,
     json: () => {
-      return data ? data : {};
+      return { message: "test" };
     },
   });
 
