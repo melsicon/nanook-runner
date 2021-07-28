@@ -22,7 +22,13 @@ To set up a Nanook Test Engine you have to set up a Runner instance. The constru
 
 [source,javascript]
 ----
+const { Runner } = require("@melsicon-de/nanook-runner");
+
 const runner = new Runner(tdgdir, fetchRegisterAPI, callStorage, clearStorage, {
   logger: true,
   report: true,
+});
+
+runner.cleanup();
+runner.run();
 ----
