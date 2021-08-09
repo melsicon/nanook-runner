@@ -5,9 +5,17 @@ const path = require("path");
 const { buildReport } = require("./buildReport");
 
 class Runner {
-  constructor(tdgdir, service, callStorage, cleanupFunc, options) {
+  constructor(
+    tdgdir,
+    service,
+    kafkaProducer,
+    callStorage,
+    cleanupFunc,
+    options
+  ) {
     this.tdgdir = tdgdir;
     this.service = service;
+    this.kafkaProducer = kafkaProducer;
     this.callStorage = callStorage;
     this.cleanupFunc = cleanupFunc;
     this.options = options;
@@ -17,7 +25,8 @@ class Runner {
 
   async run() {
     this.createData();
-    await this.runValidation()
+    this.registerStep();
+    /* await this.runValidation()
       .then((data) => {
         if (this.options.logger) console.log(data);
         if (this.callStorage != null) {
@@ -29,7 +38,7 @@ class Runner {
           this.generateReport(data);
         }
       })
-      .catch((err) => console.log(err.message));
+      .catch((err) => console.log(err.message)); */
   }
 
   createData() {
@@ -45,6 +54,27 @@ class Runner {
         this.testcaseData.push({ name: testcase, data });
       }
     });
+  }
+
+  registerStep() {
+    for (let testcase of this.testcaseData) {
+      testcase = JSON.stringify(testcase);
+      const payloads = [
+        {
+          topic: "input-topic",
+          messages: [testcase],
+        },
+      ];
+
+      this.kafkaProducer.send(payloads, (err, data) => {
+        if (err) console.log(err);
+        console.log(data);
+      });
+
+      this.kafkaProducer.on("error", (err) => {
+        console.log(err);
+      });
+    }
   }
 
   runValidation() {
