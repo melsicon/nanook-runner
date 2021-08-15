@@ -10,6 +10,7 @@ class Runner {
     service,
     kafkaProducer,
     callStorage,
+    getStorageData,
     cleanupFunc,
     options
   ) {
@@ -17,6 +18,7 @@ class Runner {
     this.service = service;
     this.kafkaProducer = kafkaProducer;
     this.callStorage = callStorage;
+    this.getStorageData = getStorageData;
     this.cleanupFunc = cleanupFunc;
     this.options = options;
 
@@ -25,20 +27,39 @@ class Runner {
 
   async run() {
     this.createData();
-    this.registerStep();
-    /* await this.runValidation()
-      .then((data) => {
-        if (this.options.logger) console.log(data);
-        if (this.callStorage != null) {
-          for (const testcase of data) {
-            this.callStorage(testcase);
-          }
+
+    await this.registerStep().then((data) => {
+      for (let testcase of data) {
+        testcase = JSON.stringify(testcase);
+        const payloads = [
+          {
+            topic: "input-topic",
+            messages: [testcase],
+          },
+        ];
+
+        this.kafkaProducer.send(payloads, (err, data) => {
+          if (err) console.log(err);
+          console.log(data);
+        });
+
+        this.kafkaProducer.on("error", (err) => {
+          console.log(err);
+        });
+      }
+    });
+
+    await this.checkStep().then((data) => {
+      if (this.options.logger) console.log(data);
+      if (this.callStorage != null) {
+        for (const testcase of data) {
+          this.callStorage(testcase);
         }
-        if (this.options.report) {
-          this.generateReport(data);
-        }
-      })
-      .catch((err) => console.log(err.message)); */
+      }
+      if (this.options.report) {
+        this.generateReport(data.value);
+      }
+    });
   }
 
   createData() {
@@ -57,47 +78,39 @@ class Runner {
   }
 
   registerStep() {
-    for (let testcase of this.testcaseData) {
-      testcase = JSON.stringify(testcase);
-      const payloads = [
-        {
-          topic: "input-topic",
-          messages: [testcase],
-        },
-      ];
-
-      this.kafkaProducer.send(payloads, (err, data) => {
-        if (err) console.log(err);
-        console.log(data);
-      });
-
-      this.kafkaProducer.on("error", (err) => {
-        console.log(err);
-      });
-    }
-  }
-
-  runValidation() {
     return new Promise(async (resolve, reject) => {
       const testcaseDataWithRes = [];
 
       for (const testcase of this.testcaseData) {
         // exclude _response when sending to service
+        // eslint-disable-next-line no-unused-vars
         const { _expectedResponse, ...tData } = testcase.data;
         await this.service(tData)
           .then((response) => response.json())
           .then((data) => {
             testcase.response = data;
-
-            const success = this.validate(_expectedResponse, data);
-
-            testcase.success = success;
-
             testcaseDataWithRes.push(testcase);
           })
           .catch((err) => {
             reject(err);
           });
+      }
+      resolve(testcaseDataWithRes);
+    });
+  }
+
+  async checkStep() {
+    return new Promise(async (resolve) => {
+      const testcaseDataWithRes = [];
+
+      const testcases = await this.getStorageData();
+      for await (const testcase of testcases) {
+        const isValid = this.validate(
+          testcase.value.data._expectedResponse,
+          testcase.value.response
+        );
+        testcase.valid = isValid;
+        testcaseDataWithRes.push(testcase);
       }
       resolve(testcaseDataWithRes);
     });
