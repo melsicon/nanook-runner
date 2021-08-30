@@ -49,17 +49,14 @@ class Runner {
       }
     });
 
-    await this.checkStep().then((data) => {
-      if (this.options.logger) console.log(data);
-      if (this.callStorage != null) {
-        for (const testcase of data) {
-          this.callStorage(testcase);
-        }
-      }
-      if (this.options.report) {
-        this.generateReport(data.value);
-      }
-    });
+    const result = await this.getData();
+    const validatedTestcases = this.checkStep(result);
+
+    if (this.options.logger) console.log(validatedTestcases);
+    /* if (this.options.report) {
+      const reportData = this.generateReportData(validatedTestcases);
+      this.generateReport(reportData);
+    } */
   }
 
   createData() {
@@ -74,6 +71,16 @@ class Runner {
 
         this.testcaseData.push({ name: testcase, data });
       }
+    });
+  }
+
+  getData() {
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        const data = await this.getStorageData();
+        const testcases = await data.all();
+        resolve(testcases);
+      }, 1500);
     });
   }
 
@@ -99,21 +106,16 @@ class Runner {
     });
   }
 
-  async checkStep() {
-    return new Promise(async (resolve) => {
-      const testcaseDataWithRes = [];
+  checkStep(data) {
+    const validatedTestcases = data.map((testcase) => {
+      const { response: actualResponse } = testcase.value;
+      const { _expectedResponse: expectedResponse } = testcase.value.data;
+      const isValid = this.validate(expectedResponse, actualResponse);
 
-      const testcases = await this.getStorageData();
-      for await (const testcase of testcases) {
-        const isValid = this.validate(
-          testcase.value.data._expectedResponse,
-          testcase.value.response
-        );
-        testcase.valid = isValid;
-        testcaseDataWithRes.push(testcase);
-      }
-      resolve(testcaseDataWithRes);
+      return { ...testcase, isValid };
     });
+
+    return validatedTestcases;
   }
 
   validate(expectedResponse, actualResponse) {
@@ -128,8 +130,10 @@ class Runner {
     let countSuccess = 0,
       countFailed = 0;
 
+    console.log(data);
+
     data.forEach((d) => {
-      if (d.success) countSuccess++;
+      if (d.isValid) countSuccess++;
       else countFailed++;
     });
 
@@ -140,6 +144,8 @@ class Runner {
     let dirpath = "./report.html";
     let stream = fs.createWriteStream(dirpath);
     const reportData = this.generateReportData(data);
+
+    console.log(data);
 
     stream.once("open", function () {
       let html = buildReport(reportData);
