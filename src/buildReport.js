@@ -4,13 +4,20 @@ const buildReport = ({ countSuccess, countFailed, data }) => {
   body += "<li>" + countSuccess + " Success Tests</li>";
   body += "<li>" + countFailed + " Failed Tests</li>";
 
-  data.forEach(({ name, response }) => {
+  data.forEach(({ isValid, value }) => {
     body +=
       "<li>" +
-      name +
+      value.name +
+      ": " +
+      isValid +
       "<ul>" +
       "<li>" +
-      response.message +
+      "Expected response: " +
+      value.data._expectedResponse +
+      "</li>" +
+      "<li>" +
+      "Response: " +
+      value.response.message +
       "</li>" +
       "</ul>" +
       "</li>";

@@ -1,6 +1,6 @@
 {
   "name": "@melsicon-de/nanook-runner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Runner for Nanook test data",
   "main": "index.js",
   "scripts": {

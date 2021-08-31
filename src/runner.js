@@ -53,10 +53,10 @@ class Runner {
     const validatedTestcases = this.checkStep(result);
 
     if (this.options.logger) console.log(validatedTestcases);
-    /* if (this.options.report) {
+    if (this.options.report) {
       const reportData = this.generateReportData(validatedTestcases);
       this.generateReport(reportData);
-    } */
+    }
   }
 
   createData() {
@@ -130,9 +130,8 @@ class Runner {
     let countSuccess = 0,
       countFailed = 0;
 
-    console.log(data);
-
     data.forEach((d) => {
+      console.log("data", d);
       if (d.isValid) countSuccess++;
       else countFailed++;
     });
@@ -143,12 +142,9 @@ class Runner {
   generateReport(data) {
     let dirpath = "./report.html";
     let stream = fs.createWriteStream(dirpath);
-    const reportData = this.generateReportData(data);
-
-    console.log(data);
 
     stream.once("open", function () {
-      let html = buildReport(reportData);
+      let html = buildReport(data);
 
       stream.end(html);
     });
